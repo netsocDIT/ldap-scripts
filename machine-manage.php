@@ -63,11 +63,12 @@ OPTIONS
 		lists tree of machines + services
 	--add-service -s servicename -m machinename 
 		autocreates machine if doesn't exist
-	--force if service already exists, resets password with --add-service.
+		--force if service already exists, resets password
 	--add-machine -m machine 
-		not really necessary but just in case you want to
+		not really necessary but just in case you want to. 
+		Adding service accounts should create machine accounts when needed
 	--delete-service -s servicename -m machinename
-	--delete-machine -m machine
+	--delete-machine -m machine deletes machine account and all services within
 
 NOTE: -D BindDN    let's you specify the full DN
       -u username  uses the dn in the form of cn=USERNAME,ou=members,ou=users,dc=netsoc,dc=dit,dc=ie
@@ -422,7 +423,7 @@ function add_machine($machineName)
 
 function connect_and_bind($options = array())
 {
-	$ldapServer  = isset($options['host']) ? $options['host'] : "192.168.1.119";
+	$ldapServer  = isset($options['host']) ? $options['host'] : "ldap.netsoc.dit.ie";
 	$ldapPort  = isset($options['port']) ? $options['port'] : "389";
 
 	if (isset($options['bindDN']))
