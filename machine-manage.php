@@ -1,5 +1,10 @@
 #!/usr/bin/php
 <?php
+if (!function_exists("ldap_connect"))
+{
+	echo "error, ldap functions in php missing.\nRun: apt-get install php5-ldap\n";
+	exit();
+}
 /*
 	TODO: Test using a different username (after adding access to create/delete options)
 		
@@ -58,6 +63,7 @@ OPTIONS
 		lists tree of machines + services
 	--add-service -s servicename -m machinename 
 		autocreates machine if doesn't exist
+	--force if service already exists, resets password with --add-service.
 	--add-machine -m machine 
 		not really necessary but just in case you want to
 	--delete-service -s servicename -m machinename
@@ -196,18 +202,12 @@ if (isset($options['delete-machine']))
 		exit();
 	}
 
-	$force = (isset($options['force'])) ? true : false;
 	
-	$delete_machine_result =  delete_machine($options['m'], $force);
+	$delete_machine_result =  delete_machine($options['m']);
 	
 	if ($delete_machine_result)
 	{
-		echo "Successfully deleted machine {$options['m']}";
-		if ($force)
-		{
-			echo "and all services within";
-		} 
-		echo "\n";
+		echo "Successfully deleted machine {$options['m']} and all services within";
 	}
 	else
 	{
@@ -221,7 +221,7 @@ if (isset($options['delete-machine']))
 
 
 
-function delete_machine($machine,$force = false)
+function delete_machine($machine)
 {
 	global $ldapConnection;
 	global $hostGroups;
@@ -235,19 +235,11 @@ function delete_machine($machine,$force = false)
 	{
 		if (count($hostGroups[$machine]) != 0)
 		{
-			if ($force == false)
-			{
-				echo "Error, There are services under this machine. Either remove manually or add --force to do so recursively\n";
-				exit();
-			}
-			else
-			{
 				foreach ($hostGroups[$machine] as $service)
 				{
 					echo "Deleting $service from $machine\n";
 					delete_service($service, $machine);
 				}
-			}
 		}
 		
 		$deleteDN = "ou=$machine,ou=machines,dc=netsoc,dc=dit,dc=ie";
@@ -470,6 +462,7 @@ function get_password($username)
 	system('stty -echo');
 	$password = trim(fgets(STDIN));
 	system('stty echo');
+	echo "\n";
 	return $password;
 }
 
